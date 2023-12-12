@@ -1,0 +1,33 @@
+********************* route.csv *****************
+
+route_I --> route_name, route_type
+
+
+
+
+
+***************** network_{bus,tram,rail,subway,combined}.csv ******************
+
+(from_stop_I, to_stop_I) --> d, duration, n_vehicles, route_I_counts
+
+route_I_counts --> n_vehicles  
+
+
+
+
+************************ network_walk.csv **********************************
+
+(from_stop_I, to_stop_I) --> d, d_walk 
+
+
+
+
+************************** network_temporal_day/week.csv **************************************
+
+(from_stop_I, to_stop_I) --> dep_time_ut, arr_time_ut, route_type, trip_I, seq, route_I
+
+
+
+************************ network_nodes.csv **********************************
+
+(from_stop_I, to_stop_I) --> lat, lon, name 
