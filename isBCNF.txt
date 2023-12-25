@@ -1,0 +1,7 @@
+combined: non à cause de "route_I_counts -> n_vehicles"
+walk: oui
+route: oui
+[mode]: non à cause de "route_I_counts -> n_vehicles"
+temporal_day: non à cause de "route_I -> route_type"
+temporal_week: non à cause de "route_I -> route_type"
+nodes: oui

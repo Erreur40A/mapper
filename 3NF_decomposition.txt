@@ -1,0 +1,14 @@
+temporal_week:
+	[from, to, dep_time, arr_time, trip_I; route_I]
+	[from, to, seq]
+	[route_type, route_I]
+
+temporal_day: comme temporal_week
+
+[mode]:
+	[from, to, d, duration_avg, route_I_counts]
+	[route_I_counts, n_vehicles]
+
+combined:
+	[from, to, d, duration_avg, route_I_counts, route_type]
+	[route_I_counts, n_vehicules]
