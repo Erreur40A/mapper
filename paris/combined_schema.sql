@@ -6,5 +6,5 @@ CREATE TABLE combined(
     n_vehicles INTEGER,
     route_I_counts TEXT,
     route_type INTEGER,
-    PRIMARY KEY (from_stop_I, to_stop_I)
+    PRIMARY KEY (from_stop_I, to_stop_I, route_type)
 );
