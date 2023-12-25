@@ -7,5 +7,5 @@ CREATE TABLE temporal_week(
     trip_I INTEGER,
     seq INTEGER,
     route_I INTEGER,
-    PRIMARY KEY (from_stop_I, to_stop_I, trip_I, dep_time_ut, arr_time_ut)
+    PRIMARY KEY (from_stop_I, to_stop_I, dep_time_ut, arr_time_ut, trip_I)
 );

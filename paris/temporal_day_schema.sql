@@ -8,5 +8,4 @@ CREATE TABLE temporal_day(
     seq INTEGER,
     route_I INTEGER,
     PRIMARY KEY (from_stop_I, to_stop_I, trip_I)
-
 );
