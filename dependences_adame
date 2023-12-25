@@ -1,16 +1,24 @@
+(attribut_1,...) sont les cles primaires de la table
+
 ********************* route.csv *****************
 
-route_I --> route_name, route_type
+(route_I) --> route_name, route_type
 
 
 
 
+***************** network_{bus,tram,rail,subway}.csv ******************
 
-***************** network_{bus,tram,rail,subway,combined}.csv ******************
-
-(from_stop_I, to_stop_I) --> d, duration, n_vehicles, route_I_counts
+(from_stop_I, to_stop_I) --> d, duration, route_I_counts
 
 route_I_counts --> n_vehicles  
+
+
+
+************************ network_combined.csv **********************************
+(from_stop_I, to_stop_I) -> route_I_counts, d, duration_avg
+
+route_I_counts -> n_vehicles, route_type
 
 
 
@@ -22,12 +30,28 @@ route_I_counts --> n_vehicles
 
 
 
-************************** network_temporal_day/week.csv **************************************
+************************** network_temporal_day.csv **************************************
 
-(from_stop_I, to_stop_I) --> dep_time_ut, arr_time_ut, route_type, trip_I, seq, route_I
+(from_stop_I, to_stop_I, trip_I) --> dep_time_ut, arr_time_ut, route_I
+
+from_stop_I, to_stop_I -> seq
+
+route_I -> route_type
+
+
+
+
+************************** network_temporal_week.csv **************************************
+
+(from_stop_I, to_stop_I, dep_time_ut, arr_time_ut, trip_I) --> route_I
+
+from_stop_I, to_stop_I -> seq
+
+route_I -> route_type
+
 
 
 
 ************************ network_nodes.csv **********************************
 
-(from_stop_I, to_stop_I) --> lat, lon, name 
+(stop_I) --> lat, lon, name 
