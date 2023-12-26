@@ -18,5 +18,5 @@ for line in fichier:
 			if i != len(temp)-1:
 				inserer_temp += ','
 		inserer_temp = inserer_temp + f',{n}' 
-		inserer_temp = inserer_temp + ')'
+		inserer_temp = inserer_temp + ');'
 		print(inserer_temp)	
