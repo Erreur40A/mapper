@@ -1,5 +1,4 @@
 *.csv
 *data.sql
 *.txt
-/paris/*
 .gitignore
