@@ -7,6 +7,7 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
+from PyQt5 import QtWidgets
 
 
 ville='Paris'
@@ -75,7 +76,7 @@ class MainWindow(QMainWindow):
         _label=QLabel('Transport: ', self)
         _label.setFixedSize(40,20)
         self.pt_box=QComboBox()
-        self.pt_box.addItems( ['bus', 'metro', 'tram', 'rer', 'walk'] )
+        self.pt_box.addItems( ['bus', 'metro', 'tram', 'rer', 'walking'] )
         self.pt_box.setCurrentIndex(0)
         controls_panel.addWidget(_label)
         controls_panel.addWidget(self.pt_box)
@@ -114,7 +115,6 @@ class MainWindow(QMainWindow):
 
 
     def table_Click(self):
-        k = 0
         prev_lat = 0
         for col in self.rows[self.tableWidget.currentRow()] :
             if (k % 3) == 0:
@@ -138,49 +138,45 @@ class MainWindow(QMainWindow):
         _to = str(self.to_box.currentText())
         _hops = int(self.hop_box.currentText())
         _pt_use = str(self.pt_box.currentText())
+        _pt_use = 'steps_'+_pt_use
 
         self.rows = []
 
-        if _hops >= 1 : 
-            self.cursor.execute(""f" WITH tmp (id_from, from_name, id_to, to_name) AS ( SELECT A.from_stop_I, B.name, A.to_stop_I, C.name FROM {_pt_use} AS A, nodes AS B, nodes AS C WHERE A.from_stop_I=B.stop_I AND A.to_stop_I=C.stop_I) SELECT from_name, to_name FROM tmp WHERE from_name='{_from}' AND to_name='{_to}'; """)
-            self.conn.commit()
-            self.rows += self.cursor.fetchall()
+        if(_pt_use != 'walking'):
+            if _hops >= 1 : 
+                self.cursor.execute(""f" WITH ligne (route_I) AS ((SELECT route_I FROM {_pt_use} AS A, nodes WHERE A.from_stop_I=nodes.stop_I AND nodes.name='{_from}') INTERSECT (SELECT route_I FROM steps_bus, nodes WHERE steps_bus.to_stop_I=nodes.stop_I AND nodes.name='{_to}')) SELECT DISTINCT B.name, F.route_name, D.name FROM steps_bus AS A, nodes AS B, steps_bus AS C, nodes AS D, ligne AS E, route AS F WHERE B.name='{_from}' AND D.name='{_to}' AND A.route_I=E.route_I AND C.route_I=E.route_I AND A.from_stop_I=B.stop_I AND C.to_stop_I=D.stop_I AND E.route_I=F.route_I; """)
+                self.conn.commit()
+                self.rows += self.cursor.fetchall()
 
-        if _hops >= 2 : 
-            self.cursor.execute(""f" SELECT distinct A.geo_point_2d, A.nom_long, A.res_com, B.geo_point_2d, B.nom_long, C.res_com, D.geo_point_2d, D.nom_long FROM metros as A, metros as B, metros as C, metros as D WHERE A.nom_long = $${_from}$$ AND D.nom_long = $${_to}$$ AND A.res_com = B.res_com AND B.nom_long = C.nom_long AND C.res_com = D.res_com AND A.res_com <> C.res_com AND A.nom_long <> B.nom_long AND B.nom_long <> D.nom_long""")
-            self.conn.commit()
-            self.rows += self.cursor.fetchall()
+            #if _hops >= 2 : 
+                #self.cursor.execute(""f" SELECT distinct A.geo_point_2d, A.nom_long, A.res_com, B.geo_point_2d, B.nom_long, C.res_com, D.geo_point_2d, D.nom_long FROM metros as A, metros as B, metros as C, metros as D WHERE A.nom_long = $${_from}$$ AND D.nom_long = $${_to}$$ AND A.res_com = B.res_com AND B.nom_long = C.nom_long AND C.res_com = D.res_com AND A.res_com <> C.res_com AND A.nom_long <> B.nom_long AND B.nom_long <> D.nom_long""")
+                #self.conn.commit()
+                #self.rows += self.cursor.fetchall()
 
-        if _hops >= 3 : 
-            self.cursor.execute(""f" SELECT distinct A.geo_point_2d, A.nom_long, A.res_com, B2.geo_point_2d, B2.nom_long, B2.res_com, C2.geo_point_2d, C2.nom_long, C2.res_com, D.geo_point_2d, D.nom_long FROM metros as A, metros as B1, metros as B2, metros as C1, metros as C2, metros as D WHERE A.nom_long = $${_from}$$ AND A.res_com = B1.res_com AND B1.nom_long = B2.nom_long AND B2.res_com = C1.res_com AND C1.nom_long = C2.nom_long AND C2.res_com = D.res_com AND D.nom_long = $${_to}$$ AND A.res_com <> B2.res_com AND B2.res_com <> C2.res_com AND A.res_com <> C2.res_com AND A.nom_long <> B1.nom_long AND B2.nom_long <> C1.nom_long AND C2.nom_long <> D.nom_long""")
-            self.conn.commit()
-            self.rows += self.cursor.fetchall()
+            #if _hops >= 3 : 
+                #self.cursor.execute(""f" SELECT distinct A.geo_point_2d, A.nom_long, A.res_com, B2.geo_point_2d, B2.nom_long, B2.res_com, C2.geo_point_2d, C2.nom_long, C2.res_com, D.geo_point_2d, D.nom_long FROM metros as A, metros as B1, metros as B2, metros as C1, metros as C2, metros as D WHERE A.nom_long = $${_from}$$ AND A.res_com = B1.res_com AND B1.nom_long = B2.nom_long AND B2.res_com = C1.res_com AND C1.nom_long = C2.nom_long AND C2.res_com = D.res_com AND D.nom_long = $${_to}$$ AND A.res_com <> B2.res_com AND B2.res_com <> C2.res_com AND A.res_com <> C2.res_com AND A.nom_long <> B1.nom_long AND B2.nom_long <> C1.nom_long AND C2.nom_long <> D.nom_long""")
+                #self.conn.commit()
+                #self.rows += self.cursor.fetchall()
 
         if len(self.rows) == 0 : 
             self.tableWidget.setRowCount(0)
             self.tableWidget.setColumnCount(0)
             return
 
-        numrows = len(self.rows)
-        numcols = len(self.rows[-1]) - math.floor(len(self.rows[-1]) / 3.0) - 1 
-        self.tableWidget.setRowCount(numrows)
-        self.tableWidget.setColumnCount(numcols)
+        self.tableWidget.setRowCount(len(self.rows))
+        self.tableWidget.setColumnCount(len(self.rows[-1]))
 
         i = 0
         for row in self.rows : 
             j = 0
-            k = 0 
             for col in row :
-                if j % 3 == 0 : 
-                    k = k + 1
-                else : 
-                    self.tableWidget.setItem(i, j-k, QTableWidgetItem(str(col)))
+                self.tableWidget.setItem(i, j, QtWidgets.QTableWidgetItem(str(col)))
                 j = j + 1
             i = i + 1
 
         header = self.tableWidget.horizontalHeader()
         j = 0
-        while j < numcols : 
+        while j <  len(self.rows[-1]): 
             header.setSectionResizeMode(j, QHeaderView.ResizeToContents)
             j = j+1
         
@@ -197,9 +193,10 @@ class MainWindow(QMainWindow):
         self.webView.addPointMarker(lat, lng)
         
         print(f"Clicked on: latitude {lat}, longitude {lng}")
-        self.cursor.execute(""f"SELECT name, (sqrt(pow(({lng}-nodes.lng), 2) + pow(({lat}-nodes.lat), 2))) AS dist FROM nodes ORDER BY dist ASC;""")        
+        self.cursor.execute(""f"SELECT name, (SQRT(POW(ABS({lng}-nodes.lng), 2) + POW(ABS({lat}-nodes.lat), 2))) AS dist FROM nodes ORDER BY dist ASC;""")        
         self.conn.commit()
         rows = self.cursor.fetchall()
+        print(rows[0][0])
         if self.startingpoint :
             self.from_box.setCurrentIndex(self.from_box.findText(rows[0][0], Qt.MatchFixedString))
         else :
