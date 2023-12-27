@@ -9,6 +9,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
 
+ville='Paris'
 
 class MainWindow(QMainWindow):
 
@@ -37,7 +38,7 @@ class MainWindow(QMainWindow):
         main.layout().addWidget(mysplit)
 
         _label = QLabel('From: ', self)
-        _label.setFixedSize(30,20)
+        _label.setFixedSize(20,20)
         self.from_box = QComboBox() 
         self.from_box.setEditable(True)
         self.from_box.completer().setCompletionMode(QCompleter.PopupCompletion)
@@ -45,7 +46,7 @@ class MainWindow(QMainWindow):
         controls_panel.addWidget(_label)
         controls_panel.addWidget(self.from_box)
 
-        _label = QLabel('  To: ', self)
+        _label = QLabel('To: ', self)
         _label.setFixedSize(20,20)
         self.to_box = QComboBox() 
         self.to_box.setEditable(True)
@@ -58,17 +59,18 @@ class MainWindow(QMainWindow):
         _label.setFixedSize(20,20)
         self.hop_box = QComboBox() 
         self.hop_box.addItems( ['1', '2', '3', '4', '5'] )
-        self.hop_box.setCurrentIndex( 2 )
+        self.hop_box.setCurrentIndex( 0 )
         controls_panel.addWidget(_label)
         controls_panel.addWidget(self.hop_box)
 
         _label=QLabel('Ville: ', self)
         _label.setFixedSize(20,20)
         self.ville_box=QComboBox()
-        self.ville_box.addItems( ['Paris', 'Berlin'] )
+        self.ville_box.addItems(['Paris', 'Berlin', 'Londre', 'Bordeaux'])
         self.ville_box.setCurrentIndex(0)
         controls_panel.addWidget(_label)
         controls_panel.addWidget(self.ville_box)
+        #ville=str(self.ville_box.currentText())
 
         _label=QLabel('Transport: ', self)
         _label.setFixedSize(40,20)
@@ -95,15 +97,14 @@ class MainWindow(QMainWindow):
 
         self.startingpoint = True
                    
-        self.show()
-        
+        self.show()        
 
     def connect_DB(self):
         self.conn = psycopg2.connect(database="BDD-db", user="Jibril", host="localhost", password="MG5scp15")
         self.cursor = self.conn.cursor()
 
         
-        self.cursor.execute(""f"SELECT distinct name FROM nodes""")
+        self.cursor.execute(""f"SELECT DISTINCT name FROM nodes""")
         self.conn.commit()
         rows = self.cursor.fetchall()
 
@@ -133,24 +134,25 @@ class MainWindow(QMainWindow):
     def button_Go(self):
         self.tableWidget.clearContents()
 
-        _fromstation = str(self.from_box.currentText())
-        _tostation = str(self.to_box.currentText())
+        _from = str(self.from_box.currentText())
+        _to = str(self.to_box.currentText())
         _hops = int(self.hop_box.currentText())
+        _pt_use = str(self.pt_box.currentText())
 
         self.rows = []
 
         if _hops >= 1 : 
-            self.cursor.execute(""f" SELECT distinct A.geo_point_2d, A.nom_long, A.res_com, B.geo_point_2d, B.nom_long FROM metros as A, metros as B WHERE A.nom_long = $${_fromstation}$$ AND B.nom_long = $${_tostation}$$ AND A.res_com = B.res_com""")
+            self.cursor.execute(""f" WITH tmp (id_from, from_name, id_to, to_name) AS ( SELECT A.from_stop_I, B.name, A.to_stop_I, C.name FROM {_pt_use} AS A, nodes AS B, nodes AS C WHERE A.from_stop_I=B.stop_I AND A.to_stop_I=C.stop_I) SELECT from_name, to_name FROM tmp WHERE from_name='{_from}' AND to_name='{_to}'; """)
             self.conn.commit()
             self.rows += self.cursor.fetchall()
 
         if _hops >= 2 : 
-            self.cursor.execute(""f" SELECT distinct A.geo_point_2d, A.nom_long, A.res_com, B.geo_point_2d, B.nom_long, C.res_com, D.geo_point_2d, D.nom_long FROM metros as A, metros as B, metros as C, metros as D WHERE A.nom_long = $${_fromstation}$$ AND D.nom_long = $${_tostation}$$ AND A.res_com = B.res_com AND B.nom_long = C.nom_long AND C.res_com = D.res_com AND A.res_com <> C.res_com AND A.nom_long <> B.nom_long AND B.nom_long <> D.nom_long""")
+            self.cursor.execute(""f" SELECT distinct A.geo_point_2d, A.nom_long, A.res_com, B.geo_point_2d, B.nom_long, C.res_com, D.geo_point_2d, D.nom_long FROM metros as A, metros as B, metros as C, metros as D WHERE A.nom_long = $${_from}$$ AND D.nom_long = $${_to}$$ AND A.res_com = B.res_com AND B.nom_long = C.nom_long AND C.res_com = D.res_com AND A.res_com <> C.res_com AND A.nom_long <> B.nom_long AND B.nom_long <> D.nom_long""")
             self.conn.commit()
             self.rows += self.cursor.fetchall()
 
         if _hops >= 3 : 
-            self.cursor.execute(""f" SELECT distinct A.geo_point_2d, A.nom_long, A.res_com, B2.geo_point_2d, B2.nom_long, B2.res_com, C2.geo_point_2d, C2.nom_long, C2.res_com, D.geo_point_2d, D.nom_long FROM metros as A, metros as B1, metros as B2, metros as C1, metros as C2, metros as D WHERE A.nom_long = $${_fromstation}$$ AND A.res_com = B1.res_com AND B1.nom_long = B2.nom_long AND B2.res_com = C1.res_com AND C1.nom_long = C2.nom_long AND C2.res_com = D.res_com AND D.nom_long = $${_tostation}$$ AND A.res_com <> B2.res_com AND B2.res_com <> C2.res_com AND A.res_com <> C2.res_com AND A.nom_long <> B1.nom_long AND B2.nom_long <> C1.nom_long AND C2.nom_long <> D.nom_long""")
+            self.cursor.execute(""f" SELECT distinct A.geo_point_2d, A.nom_long, A.res_com, B2.geo_point_2d, B2.nom_long, B2.res_com, C2.geo_point_2d, C2.nom_long, C2.res_com, D.geo_point_2d, D.nom_long FROM metros as A, metros as B1, metros as B2, metros as C1, metros as C2, metros as D WHERE A.nom_long = $${_from}$$ AND A.res_com = B1.res_com AND B1.nom_long = B2.nom_long AND B2.res_com = C1.res_com AND C1.nom_long = C2.nom_long AND C2.res_com = D.res_com AND D.nom_long = $${_to}$$ AND A.res_com <> B2.res_com AND B2.res_com <> C2.res_com AND A.res_com <> C2.res_com AND A.nom_long <> B1.nom_long AND B2.nom_long <> C1.nom_long AND C2.nom_long <> D.nom_long""")
             self.conn.commit()
             self.rows += self.cursor.fetchall()
 
@@ -198,7 +200,6 @@ class MainWindow(QMainWindow):
         self.cursor.execute(""f"SELECT name, (sqrt(pow(({lng}-nodes.lng), 2) + pow(({lat}-nodes.lat), 2))) AS dist FROM nodes ORDER BY dist ASC;""")        
         self.conn.commit()
         rows = self.cursor.fetchall()
-        print('Closest STATION is: ', rows[0][0])
         if self.startingpoint :
             self.from_box.setCurrentIndex(self.from_box.findText(rows[0][0], Qt.MatchFixedString))
         else :
@@ -211,7 +212,7 @@ class myWebView (QWebEngineView):
     def __init__(self):
         super().__init__()
 
-        self.maptypes = ["OpenStreetMap", "Stamen Terrain", "stamentoner", "cartodbpositron"]
+        self.maptypes = ["OpenStreetMap"]
         self.setMap(0)
 
 
@@ -310,8 +311,16 @@ class myWebView (QWebEngineView):
 
 
     def setMap (self, i):
-        self.mymap = folium.Map(location=[48.8619, 2.3519], tiles=self.maptypes[i], zoom_start=12, prefer_canvas=True)
-
+        #[lat, lng]
+        if(ville=='Paris'):
+            self.mymap = folium.Map(location=[48.8619, 2.3519], tiles=self.maptypes[i], zoom_start=12, prefer_canvas=True)
+        """if(ville=='Berlin'):
+            self.mymap = folium.Map(location=[52.520320, 13.413682], tiles=self.maptypes[i], zoom_start=12, prefer_canvas=True)
+        if(ville=='Londre'):
+            self.mymap = folium.Map(location=[51.512143, -0.108970], tiles=self.maptypes[i], zoom_start=12, prefer_canvas=True)
+        if(ville=='Bordeaux'):
+            self.mymap = folium.Map(location=[44.842027, -0.577090], tiles=self.maptypes[i], zoom_start=12, prefer_canvas=True)
+        """
         self.mymap = self.add_customjs(self.mymap)
 
         page = WebEnginePage(self)
