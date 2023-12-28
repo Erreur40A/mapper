@@ -1,4 +1,4 @@
-CREATE TABLE temporal_week_paris(
+CREATE TABLE temporal_day_toulouse(
     from_stop_I INTEGER,
     to_stop_I INTEGER,
     dep_time_ut NUMERIC(20,5),
@@ -7,5 +7,5 @@ CREATE TABLE temporal_week_paris(
     trip_I INTEGER,
     seq INTEGER,
     route_I INTEGER,
-    PRIMARY KEY (from_stop_I, to_stop_I, dep_time_ut, arr_time_ut, trip_I)
+    PRIMARY KEY (from_stop_I, to_stop_I, trip_I)
 );

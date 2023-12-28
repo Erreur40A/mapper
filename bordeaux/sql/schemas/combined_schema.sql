@@ -1,4 +1,4 @@
-CREATE TABLE combined_paris(
+CREATE TABLE combined_bordeaux(
     from_stop_I INTEGER,
     to_stop_I INTEGER,
     d INTEGER,

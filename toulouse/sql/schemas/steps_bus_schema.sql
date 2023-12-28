@@ -1,4 +1,4 @@
-CREATE TABLE steps_rail_paris(
+CREATE TABLE steps_bus_toulouse(
 	from_stop_I INTEGER,
 	to_stop_I INTEGER,
 	route_I INTEGER,

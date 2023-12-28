@@ -1,4 +1,4 @@
-CREATE TABLE tram(
+CREATE TABLE tram_paris(
     from_stop_I INTEGER,
     to_stop_I INTEGER,
     d INTEGER,

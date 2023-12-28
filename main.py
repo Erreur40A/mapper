@@ -139,7 +139,7 @@ class MainWindow(QMainWindow):
                     plng = coordonne[0][1]
 
                     self.webView.addMarker(coordonne[0][0], coordonne[0][1])
-                    print(coordonne)
+
                     if(j==-1):
                         j=1
                     else:

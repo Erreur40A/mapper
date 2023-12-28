@@ -1,4 +1,4 @@
-CREATE TABLE walk(
+CREATE TABLE walk_paris(
     from_stop_I INTEGER,
     to_stop_I INTEGER,
     d INTEGER,

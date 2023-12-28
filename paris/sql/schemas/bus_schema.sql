@@ -1,4 +1,4 @@
-CREATE TABLE bus(
+CREATE TABLE bus_paris(
     from_stop_I INTEGER,
     to_stop_I INTEGER,
     d INTEGER,

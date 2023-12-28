@@ -1,4 +1,4 @@
-CREATE TABLE temporal_day(
+CREATE TABLE temporal_day_paris(
     from_stop_I INTEGER,
     to_stop_I INTEGER,
     dep_time_ut NUMERIC(20,5),

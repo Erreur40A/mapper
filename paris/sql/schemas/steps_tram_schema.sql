@@ -1,4 +1,4 @@
-CREATE TABLE steps_tram(
+CREATE TABLE steps_tram_paris(
 	from_stop_I INTEGER,
 	to_stop_I INTEGER,
 	route_I INTEGER,
