@@ -2,3 +2,7 @@
 *data.sql
 *.txt
 .gitignore
+*.geojson
+*.jpg
+*.sqlite
+*.zip
