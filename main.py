@@ -351,8 +351,8 @@ class myWebView (QWebEngineView):
             self.mymap = folium.Map(location=[48.8619, 2.3519], tiles=self.maptypes[i], zoom_start=12, prefer_canvas=True)
         if(ville=='Berlin'):
             self.mymap = folium.Map(location=[52.520320, 13.413682], tiles=self.maptypes[i], zoom_start=12, prefer_canvas=True)
-        if(ville=='Londre'):
-            self.mymap = folium.Map(location=[51.512143, -0.108970], tiles=self.maptypes[i], zoom_start=12, prefer_canvas=True)
+        if(ville=='Toulouse'):
+            self.mymap = folium.Map(location=[43.605410, 1.443672], tiles=self.maptypes[i], zoom_start=12, prefer_canvas=True)
         if(ville=='Bordeaux'):
             self.mymap = folium.Map(location=[44.842027, -0.577090], tiles=self.maptypes[i], zoom_start=12, prefer_canvas=True)
         
