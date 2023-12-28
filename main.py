@@ -66,7 +66,7 @@ class MainWindow(QMainWindow):
         _label=QLabel('Ville: ', self)
         _label.setFixedSize(20,20)
         self.ville_box=QComboBox()
-        self.ville_box.addItems(['Paris', 'Berlin', 'Londre', 'Bordeaux'])
+        self.ville_box.addItems(['Paris', 'Berlin', 'Toulouse', 'Bordeaux'])
         self.ville_box.setCurrentIndex(0)
         controls_panel.addWidget(_label)
         controls_panel.addWidget(self.ville_box)
