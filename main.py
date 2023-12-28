@@ -9,8 +9,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5 import QtWidgets
 
-
-ville='Paris'
+villedf='Paris'
 
 class MainWindow(QMainWindow):
 
@@ -59,7 +58,7 @@ class MainWindow(QMainWindow):
         _label = QLabel('Hops: ', self)
         _label.setFixedSize(20,20)
         self.hop_box = QComboBox() 
-        self.hop_box.addItems( ['1', '2', '3', '4', '5'] )
+        self.hop_box.addItems( ['1', '2', '3'] )
         self.hop_box.setCurrentIndex( 0 )
         controls_panel.addWidget(_label)
         controls_panel.addWidget(self.hop_box)
@@ -71,10 +70,10 @@ class MainWindow(QMainWindow):
         self.ville_box.setCurrentIndex(0)
         controls_panel.addWidget(_label)
         controls_panel.addWidget(self.ville_box)
-        #ville=str(self.ville_box.currentText())
+        self.ville_box.currentTextChanged.connect(self.actualiser)
 
         _label=QLabel('Transport: ', self)
-        _label.setFixedSize(40,20)
+        _label.setFixedSize(20,20)
         self.pt_box=QComboBox()
         self.pt_box.addItems( ['bus', 'metro', 'tram', 'rer', 'walking'] )
         self.pt_box.setCurrentIndex(0)
@@ -138,13 +137,14 @@ class MainWindow(QMainWindow):
         _to = str(self.to_box.currentText())
         _hops = int(self.hop_box.currentText())
         _pt_use = str(self.pt_box.currentText())
-        _pt_use = 'steps_'+_pt_use
 
         self.rows = []
 
         if(_pt_use != 'walking'):
+            _pt_use = 'steps_'+_pt_use
+
             if _hops >= 1 : 
-                self.cursor.execute(""f" WITH ligne (route_I) AS ((SELECT route_I FROM {_pt_use} AS A, nodes WHERE A.from_stop_I=nodes.stop_I AND nodes.name='{_from}') INTERSECT (SELECT route_I FROM steps_bus, nodes WHERE steps_bus.to_stop_I=nodes.stop_I AND nodes.name='{_to}')) SELECT DISTINCT B.name, F.route_name, D.name FROM steps_bus AS A, nodes AS B, steps_bus AS C, nodes AS D, ligne AS E, route AS F WHERE B.name='{_from}' AND D.name='{_to}' AND A.route_I=E.route_I AND C.route_I=E.route_I AND A.from_stop_I=B.stop_I AND C.to_stop_I=D.stop_I AND E.route_I=F.route_I; """)
+                self.cursor.execute(""f" WITH ligne (route_I) AS ((SELECT route_I FROM {_pt_use} AS A, nodes WHERE A.from_stop_I=nodes.stop_I AND nodes.name='{_from}') INTERSECT (SELECT route_I FROM {_pt_use}, nodes WHERE steps_bus.to_stop_I=nodes.stop_I AND nodes.name='{_to}')) SELECT DISTINCT B.name, F.route_name, D.name FROM {_pt_use} AS A, nodes AS B, {_pt_use} AS C, nodes AS D, ligne AS E, route AS F WHERE B.name='{_from}' AND D.name='{_to}' AND A.route_I=E.route_I AND C.route_I=E.route_I AND A.from_stop_I=B.stop_I AND C.to_stop_I=D.stop_I AND E.route_I=F.route_I; """)
                 self.conn.commit()
                 self.rows += self.cursor.fetchall()
 
@@ -184,8 +184,14 @@ class MainWindow(QMainWindow):
 
 
     def button_Clear(self):
-        self.webView.clearMap(self.maptype_box.currentIndex())
+        self.webView.clearMap(self.maptype_box.currentIndex(), self.ville_box.currentText())
         self.startingpoint = True
+        self.update()
+
+
+    def actualiser(self):
+        ville=str(self.ville_box.currentText())
+        self.webView.setMap(self.maptype_box.currentIndex(), ville)
         self.update()
 
 
@@ -210,7 +216,7 @@ class myWebView (QWebEngineView):
         super().__init__()
 
         self.maptypes = ["OpenStreetMap"]
-        self.setMap(0)
+        self.setMap(0, villedf)
 
 
     def add_customjs(self, map_object):
@@ -307,17 +313,17 @@ class myWebView (QWebEngineView):
         self.page().runJavaScript(js)
 
 
-    def setMap (self, i):
+    def setMap (self, i, ville):
         #[lat, lng]
         if(ville=='Paris'):
             self.mymap = folium.Map(location=[48.8619, 2.3519], tiles=self.maptypes[i], zoom_start=12, prefer_canvas=True)
-        """if(ville=='Berlin'):
+        if(ville=='Berlin'):
             self.mymap = folium.Map(location=[52.520320, 13.413682], tiles=self.maptypes[i], zoom_start=12, prefer_canvas=True)
         if(ville=='Londre'):
             self.mymap = folium.Map(location=[51.512143, -0.108970], tiles=self.maptypes[i], zoom_start=12, prefer_canvas=True)
         if(ville=='Bordeaux'):
             self.mymap = folium.Map(location=[44.842027, -0.577090], tiles=self.maptypes[i], zoom_start=12, prefer_canvas=True)
-        """
+        
         self.mymap = self.add_customjs(self.mymap)
 
         page = WebEnginePage(self)
@@ -328,8 +334,9 @@ class myWebView (QWebEngineView):
 
         self.setHtml(data.getvalue().decode())
 
-    def clearMap(self, index):
-        self.setMap(index)
+    def clearMap(self, index, ville):
+        self.setMap(index, ville)
+        self.update()
 
 
 
