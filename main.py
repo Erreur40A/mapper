@@ -10,14 +10,13 @@ from PyQt5.QtWidgets import *
 from PyQt5 import QtWidgets
 
 villedf='Paris' #ville par defaut
-ptdf='bus' #mode de transport par defaut
 
 class MainWindow(QMainWindow):
 
     def __init__(self):
         super().__init__()
 
-        self.resize(600, 600)
+        self.resize(700, 700)
 	
         main = QWidget()
         self.setCentralWidget(main)
@@ -39,7 +38,7 @@ class MainWindow(QMainWindow):
         main.layout().addWidget(mysplit)
 
         _label = QLabel('From: ', self)
-        _label.setFixedSize(20,20)
+        _label.setFixedSize(20,10)
         self.from_box = QComboBox() 
         self.from_box.setEditable(True)
         self.from_box.completer().setCompletionMode(QCompleter.PopupCompletion)
@@ -48,7 +47,7 @@ class MainWindow(QMainWindow):
         controls_panel.addWidget(self.from_box)
 
         _label = QLabel('To: ', self)
-        _label.setFixedSize(20,20)
+        _label.setFixedSize(20,10)
         self.to_box = QComboBox() 
         self.to_box.setEditable(True)
         self.to_box.completer().setCompletionMode(QCompleter.PopupCompletion)
@@ -117,20 +116,36 @@ class MainWindow(QMainWindow):
 
 
     def table_Click(self):
-        prev_lat = 0
-        for col in self.rows[self.tableWidget.currentRow()] :
-            if (k % 3) == 0:
-                lst = col.split(',')
-                lat = float(lst[0])
-                lon = float(lst[1]) 
+        plat=0
+        plng=0
+        j=1
+        _pt_use=self.pt_use
+        if(_pt_use!='walking'):
+            _pt_use='steps_'+_pt_use
 
-                if prev_lat != 0:
-                    self.webView.addSegment( prev_lat, prev_lon, lat, lon )
-                prev_lat = lat
-                prev_lon = lon
+            col=self.rows[self.tableWidget.currentRow()]
+            for i in range(0,len(col)):
+                if (i%2==0):
+                    self.cursor.execute(""f" WITH tab1(stop_I, lat, lng) AS (SELECT stop_I, lat, lng FROM nodes WHERE name='{col[i]}'), tmp (route_I) AS (SELECT route_I FROM route WHERE route_name='{col[i+j]}') SELECT DISTINCT B.lat, B.lng FROM ({_pt_use} AS A INNER JOIN tab1 AS B ON (A.from_stop_I=B.stop_I)) INNER JOIN tmp AS C ON (A.route_I=C.route_I); """)
+                    self.conn.commit()
+                    coordonne=self.cursor.fetchall() 
+                    #coordonne[0][0]=lat, coordonne[1][0]=lng c'est coordonne[i][j]
+                    #car les requetes sont stockés sous la forme de matrice et si
+                    #il y a plusieurs coordonne on prend celle qui est en coordonne[0]
 
-                self.webView.addMarker( lat, lon )
-            k = k + 1
+                    if plat != 0:
+                        self.webView.addSegment(plat, plng, coordonne[0][0], coordonne[0][1])
+                    plat = coordonne[0][0]
+                    plng = coordonne[0][1]
+
+                    self.webView.addMarker(coordonne[0][0], coordonne[0][1])
+                    print(coordonne)
+                    if(j==-1):
+                        j=1
+                    else:
+                        j=-1
+
+            i+=1
         
 
     def button_Go(self):
@@ -177,19 +192,19 @@ class MainWindow(QMainWindow):
         self.tableWidget.setRowCount(len(self.rows))
         self.tableWidget.setColumnCount(len(self.rows[-1]))
 
-        i = 0
+        i=0
         for row in self.rows : 
-            j = 0
+            j=0
             for col in row :
                 self.tableWidget.setItem(i, j, QtWidgets.QTableWidgetItem(str(col)))
-                j = j + 1
-            i = i + 1
+                j+=1
+            i+=1
 
         header = self.tableWidget.horizontalHeader()
-        j = 0
-        while j <  len(self.rows[-1]): 
-            header.setSectionResizeMode(j, QHeaderView.ResizeToContents)
-            j = j+1
+        i = 0
+        while i < len(self.rows[-1]): 
+            header.setSectionResizeMode(i, QHeaderView.ResizeToContents)
+            i+=1
         
         self.update()	
 
