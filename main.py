@@ -9,7 +9,8 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5 import QtWidgets
 
-villedf='Paris'
+villedf='Paris' #ville par defaut
+ptdf='bus' #mode de transport par defaut
 
 class MainWindow(QMainWindow):
 
@@ -70,13 +71,15 @@ class MainWindow(QMainWindow):
         self.ville_box.setCurrentIndex(0)
         controls_panel.addWidget(_label)
         controls_panel.addWidget(self.ville_box)
-        self.ville_box.currentTextChanged.connect(self.actualiser)
+        self.ville_box.currentTextChanged.connect(self.actualiser_ville)
 
         _label=QLabel('Transport: ', self)
         _label.setFixedSize(20,20)
         self.pt_box=QComboBox()
-        self.pt_box.addItems( ['bus', 'metro', 'tram', 'rer', 'walking'] )
+        self.pt_box.addItems( ['bus', 'subway', 'tram', 'rail', 'walking'] )
         self.pt_box.setCurrentIndex(0)
+        self.pt_use=self.pt_box.currentText()
+        self.pt_box.currentTextChanged.connect(self.actualiser_pt)
         controls_panel.addWidget(_label)
         controls_panel.addWidget(self.pt_box)
 
@@ -136,7 +139,15 @@ class MainWindow(QMainWindow):
         _from = str(self.from_box.currentText())
         _to = str(self.to_box.currentText())
         _hops = int(self.hop_box.currentText())
-        _pt_use = str(self.pt_box.currentText())
+        _pt_use = self.pt_use
+
+        #verifie si _from ou _to contienent "'" 
+        if(_from.find("'")!=-1):
+            lst=_from.split("'")
+            _from=lst[0] + "''" + lst[1]
+        if(_to.find("'")!=-1):
+            lst=_to.split("'")
+            _to=lst[0] + "''" + lst[1]            
 
         self.rows = []
 
@@ -144,7 +155,7 @@ class MainWindow(QMainWindow):
             _pt_use = 'steps_'+_pt_use
 
             if _hops >= 1 : 
-                self.cursor.execute(""f" WITH ligne (route_I) AS ((SELECT route_I FROM {_pt_use} AS A, nodes WHERE A.from_stop_I=nodes.stop_I AND nodes.name='{_from}') INTERSECT (SELECT route_I FROM {_pt_use}, nodes WHERE steps_bus.to_stop_I=nodes.stop_I AND nodes.name='{_to}')) SELECT DISTINCT B.name, F.route_name, D.name FROM {_pt_use} AS A, nodes AS B, {_pt_use} AS C, nodes AS D, ligne AS E, route AS F WHERE B.name='{_from}' AND D.name='{_to}' AND A.route_I=E.route_I AND C.route_I=E.route_I AND A.from_stop_I=B.stop_I AND C.to_stop_I=D.stop_I AND E.route_I=F.route_I; """)
+                self.cursor.execute(""f" WITH ligne (route_I) AS ((SELECT route_I FROM {_pt_use} AS A, nodes WHERE A.from_stop_I=nodes.stop_I AND nodes.name='{_from}') INTERSECT (SELECT route_I FROM {_pt_use}, nodes WHERE {_pt_use}.to_stop_I=nodes.stop_I AND nodes.name='{_to}')) SELECT DISTINCT B.name, F.route_name, D.name FROM {_pt_use} AS A, nodes AS B, {_pt_use} AS C, nodes AS D, ligne AS E, route AS F WHERE B.name='{_from}' AND D.name='{_to}' AND A.route_I=E.route_I AND C.route_I=E.route_I AND A.from_stop_I=B.stop_I AND C.to_stop_I=D.stop_I AND E.route_I=F.route_I; """)
                 self.conn.commit()
                 self.rows += self.cursor.fetchall()
 
@@ -189,25 +200,31 @@ class MainWindow(QMainWindow):
         self.update()
 
 
-    def actualiser(self):
+    def actualiser_ville(self):
         ville=str(self.ville_box.currentText())
         self.webView.setMap(self.maptype_box.currentIndex(), ville)
         self.update()
+
+    def actualiser_pt(self):
+        self.pt_use=self.pt_box.currentText()
 
 
     def mouseClick(self, lat, lng):
         self.webView.addPointMarker(lat, lng)
         
+        _pt_use="steps_"+self.pt_box.currentText()
+
         print(f"Clicked on: latitude {lat}, longitude {lng}")
-        self.cursor.execute(""f"SELECT name, (SQRT(POW(ABS({lng}-nodes.lng), 2) + POW(ABS({lat}-nodes.lat), 2))) AS dist FROM nodes ORDER BY dist ASC;""")        
+        self.cursor.execute(""f"SELECT name, (SQRT(POW(ABS({lng}-nodes.lng), 2) + POW(ABS({lat}-nodes.lat), 2))) AS dist FROM nodes, {_pt_use} WHERE nodes.stop_I={_pt_use}.from_stop_I OR nodes.stop_I={_pt_use}.to_stop_I ORDER BY dist ASC;""")        
         self.conn.commit()
         rows = self.cursor.fetchall()
         print(rows[0][0])
         if self.startingpoint :
             self.from_box.setCurrentIndex(self.from_box.findText(rows[0][0], Qt.MatchFixedString))
+            self.startingpoint=False
         else :
             self.to_box.setCurrentIndex(self.to_box.findText(rows[0][0], Qt.MatchFixedString))
-        self.startingpoint = not self.startingpoint
+            self.startingpoint = True
 
 
 
