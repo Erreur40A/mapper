@@ -76,7 +76,7 @@ class MainWindow(QMainWindow):
         _label=QLabel('Transport: ', self)
         _label.setFixedSize(20,20)
         self.pt_box=QComboBox()
-        self.pt_box.addItems( ['bus', 'subway', 'tram', 'rail', 'walking'] )
+        self.pt_box.addItems(['bus', 'subway', 'tram', 'rail', 'walking'])
         self.pt_box.setCurrentIndex(0)
         self.pt_use=self.pt_box.currentText()
         self.pt_box.currentTextChanged.connect(self.actualiser_pt)
@@ -141,10 +141,7 @@ class MainWindow(QMainWindow):
 
                     self.webView.addMarker(coordonne[0][0], coordonne[0][1])
 
-                    if(j==-1):
-                        j=1
-                    else:
-                        j=-1
+                    j=-1
 
             i+=1
         
@@ -222,6 +219,20 @@ class MainWindow(QMainWindow):
 
         #on met a jour la map
         self.webView.setMap(self.maptype_box.currentIndex(), ville)
+
+        #on met a jour les modes de transport qui peuvent etre utiliser
+        if(self.ville=='paris'):
+            self.pt_box.clear()
+            self.pt_box.addItems(['bus', 'subway', 'tram', 'rail', 'walking'])
+        elif(self.ville=='berlin'):
+            self.pt_box.clear()
+            self.pt_box.addItems(['bus', 'ferry', 'subway', 'tram', 'rail', 'walking'])
+        elif(self.ville=='bordeaux'):
+            self.pt_box.clear()
+            self.pt_box.addItems(['bus', 'ferry', 'tram', 'walking'])
+        else:#Toulouse
+            self.pt_box.clear()
+            self.pt_box.addItems(['bus', 'subway', 'tram','walking'])
 
         #on met a jour la liste deroulante 'from' et 'to'
         self.cursor.execute(""f"SELECT DISTINCT name FROM nodes_{self.ville}""")
