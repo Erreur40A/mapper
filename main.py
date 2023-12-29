@@ -70,6 +70,7 @@ class MainWindow(QMainWindow):
         self.ville_box.setCurrentIndex(0)
         controls_panel.addWidget(_label)
         controls_panel.addWidget(self.ville_box)
+        self.ville=self.ville_box.currentText().lower()
         self.ville_box.currentTextChanged.connect(self.actualiser_ville)
 
         _label=QLabel('Transport: ', self)
@@ -106,7 +107,7 @@ class MainWindow(QMainWindow):
         self.cursor = self.conn.cursor()
 
         
-        self.cursor.execute(""f"SELECT DISTINCT name FROM nodes""")
+        self.cursor.execute(""f"SELECT DISTINCT name FROM nodes_paris""")
         self.conn.commit()
         rows = self.cursor.fetchall()
 
@@ -121,12 +122,12 @@ class MainWindow(QMainWindow):
         j=1
         _pt_use=self.pt_use
         if(_pt_use!='walking'):
-            _pt_use='steps_'+_pt_use
+            _pt_use='steps_'+_pt_use+'_'+self.ville
 
             col=self.rows[self.tableWidget.currentRow()]
             for i in range(0,len(col)):
                 if (i%2==0):
-                    self.cursor.execute(""f" WITH tab1(stop_I, lat, lng) AS (SELECT stop_I, lat, lng FROM nodes WHERE name='{col[i]}'), tmp (route_I) AS (SELECT route_I FROM route WHERE route_name='{col[i+j]}') SELECT DISTINCT B.lat, B.lng FROM ({_pt_use} AS A INNER JOIN tab1 AS B ON (A.from_stop_I=B.stop_I)) INNER JOIN tmp AS C ON (A.route_I=C.route_I); """)
+                    self.cursor.execute(""f" WITH tab1(stop_I, lat, lng) AS (SELECT stop_I, lat, lng FROM nodes_{self.ville} WHERE name='{col[i]}'), tmp (route_I) AS (SELECT route_I FROM route_{self.ville} WHERE route_name='{col[i+j]}') SELECT DISTINCT B.lat, B.lng FROM ({_pt_use} AS A INNER JOIN tab1 AS B ON (A.from_stop_I=B.stop_I)) INNER JOIN tmp AS C ON (A.route_I=C.route_I); """)
                     self.conn.commit()
                     coordonne=self.cursor.fetchall() 
                     #coordonne[0][0]=lat, coordonne[1][0]=lng c'est coordonne[i][j]
@@ -167,10 +168,10 @@ class MainWindow(QMainWindow):
         self.rows = []
 
         if(_pt_use != 'walking'):
-            _pt_use = 'steps_'+_pt_use
+            _pt_use = 'steps_'+_pt_use+"_"+self.ville
 
             if _hops >= 1 : 
-                self.cursor.execute(""f" WITH ligne (route_I) AS ((SELECT route_I FROM {_pt_use} AS A, nodes WHERE A.from_stop_I=nodes.stop_I AND nodes.name='{_from}') INTERSECT (SELECT route_I FROM {_pt_use}, nodes WHERE {_pt_use}.to_stop_I=nodes.stop_I AND nodes.name='{_to}')) SELECT DISTINCT B.name, F.route_name, D.name FROM {_pt_use} AS A, nodes AS B, {_pt_use} AS C, nodes AS D, ligne AS E, route AS F WHERE B.name='{_from}' AND D.name='{_to}' AND A.route_I=E.route_I AND C.route_I=E.route_I AND A.from_stop_I=B.stop_I AND C.to_stop_I=D.stop_I AND E.route_I=F.route_I; """)
+                self.cursor.execute(""f" WITH ligne (route_I) AS ((SELECT route_I FROM {_pt_use} AS A, nodes_{self.ville} AS B WHERE A.from_stop_I=B.stop_I AND B.name='{_from}') INTERSECT (SELECT route_I FROM {_pt_use} AS A, nodes_{self.ville} AS B WHERE A.to_stop_I=B.stop_I AND B.name='{_to}')) SELECT DISTINCT B.name, F.route_name, D.name FROM {_pt_use} AS A, nodes_{self.ville} AS B, {_pt_use} AS C, nodes_{self.ville} AS D, ligne AS E, route_{self.ville} AS F WHERE B.name='{_from}' AND D.name='{_to}' AND A.route_I=E.route_I AND C.route_I=E.route_I AND A.from_stop_I=B.stop_I AND C.to_stop_I=D.stop_I AND E.route_I=F.route_I; """)
                 self.conn.commit()
                 self.rows += self.cursor.fetchall()
 
@@ -217,7 +218,20 @@ class MainWindow(QMainWindow):
 
     def actualiser_ville(self):
         ville=str(self.ville_box.currentText())
+        self.ville=ville.lower()
+
+        #on met a jour la map
         self.webView.setMap(self.maptype_box.currentIndex(), ville)
+
+        #on met a jour la liste deroulante 'from' et 'to'
+        self.cursor.execute(""f"SELECT DISTINCT name FROM nodes_{self.ville}""")
+        self.conn.commit()
+        rows = self.cursor.fetchall()
+
+        for row in rows : 
+            self.from_box.addItem(str(row[0]))
+            self.to_box.addItem(str(row[0]))
+
         self.update()
 
     def actualiser_pt(self):
@@ -227,10 +241,10 @@ class MainWindow(QMainWindow):
     def mouseClick(self, lat, lng):
         self.webView.addPointMarker(lat, lng)
         
-        _pt_use="steps_"+self.pt_box.currentText()
+        _pt_use="steps_"+self.pt_box.currentText()+"_"+self.ville
 
         print(f"Clicked on: latitude {lat}, longitude {lng}")
-        self.cursor.execute(""f"SELECT name, (SQRT(POW(ABS({lng}-nodes.lng), 2) + POW(ABS({lat}-nodes.lat), 2))) AS dist FROM nodes, {_pt_use} WHERE nodes.stop_I={_pt_use}.from_stop_I OR nodes.stop_I={_pt_use}.to_stop_I ORDER BY dist ASC;""")        
+        self.cursor.execute(""f"SELECT A.name, (SQRT(POW(ABS({lng}-A.lng), 2) + POW(ABS({lat}-A.lat), 2))) AS dist FROM nodes_{self.ville} AS A, {_pt_use} AS B WHERE A.stop_I=B.from_stop_I OR A.stop_I=B.to_stop_I ORDER BY dist ASC;""")        
         self.conn.commit()
         rows = self.cursor.fetchall()
         print(rows[0][0])
