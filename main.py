@@ -103,7 +103,7 @@ class MainWindow(QMainWindow):
         self.show()        
 
     def connect_DB(self):
-        self.conn = psycopg2.connect(database="BDD-db", user="Jibril", host="localhost", password="MG5scp15")
+        self.conn = psycopg2.connect(database="projet_test_db", user="kali")
         self.cursor = self.conn.cursor()
 
         
@@ -181,15 +181,17 @@ class MainWindow(QMainWindow):
                 self.conn.commit()
                 self.rows += self.cursor.fetchall()
 
-            #if _hops >= 2 : 
-                #self.cursor.execute(""f" SELECT distinct A.geo_point_2d, A.nom_long, A.res_com, B.geo_point_2d, B.nom_long, C.res_com, D.geo_point_2d, D.nom_long FROM metros as A, metros as B, metros as C, metros as D WHERE A.nom_long = $${_from}$$ AND D.nom_long = $${_to}$$ AND A.res_com = B.res_com AND B.nom_long = C.nom_long AND C.res_com = D.res_com AND A.res_com <> C.res_com AND A.nom_long <> B.nom_long AND B.nom_long <> D.nom_long""")
-                #self.conn.commit()
-                #self.rows += self.cursor.fetchall()
+            if _hops >= 2 : 
+                self.cursor.execute(""f"WITH   depart_i AS (select DISTINCT stop_i         FROM nodes_{self.ville}         WHERE name = '{_from}'),         arrivee_i  AS (select DISTINCT stop_i         FROM nodes_{self.ville} WHERE name = '{_to}') ,               stations_from_a (depart,premier_transport, premier_arret)                AS (select DISTINCT from_stop_i,route_i, to_stop_i         FROM {_pt_use}         WHERE from_stop_i in (select stop_i         FROM depart_i)),                stations_from_b (premier_arret, deuxieme_transport, deuxieme_arret)                AS (select DISTINCT from_stop_i,route_i, to_stop_i         FROM {_pt_use}         WHERE from_stop_i in (select premier_arret FROM stations_from_a)        AND to_stop_i in (select stop_i        FROM arrivee_i)),  trajet_complet         AS (select depart,premier_transport, premier_arret, deuxieme_transport, deuxieme_arret  FROM stations_from_a         INNER JOIN stations_from_b         USING (premier_arret)) SELECT X.name ,       A.route_name AS premiere_ligne,        Y.name ,       B.route_name AS deuxieme_ligne,        Z.name deuxieme_arret FROM trajet_complet,         route_{self.ville} AS A,        route_{self.ville} AS B, nodes_{self.ville} as X,        nodes_{self.ville} as Y,        nodes_{self.ville} as Z WHERE A.route_i = premier_transport         AND   B.route_i = deuxieme_transport                 AND X.stop_i = depart        AND Y.stop_i = premier_arret        AND Z.stop_i = deuxieme_arret               AND A.route_name <> B.route_name;""")
+                self.conn.commit()
+                self.rows += self.cursor.fetchall()
 
-            #if _hops >= 3 : 
-                #self.cursor.execute(""f" SELECT distinct A.geo_point_2d, A.nom_long, A.res_com, B2.geo_point_2d, B2.nom_long, B2.res_com, C2.geo_point_2d, C2.nom_long, C2.res_com, D.geo_point_2d, D.nom_long FROM metros as A, metros as B1, metros as B2, metros as C1, metros as C2, metros as D WHERE A.nom_long = $${_from}$$ AND A.res_com = B1.res_com AND B1.nom_long = B2.nom_long AND B2.res_com = C1.res_com AND C1.nom_long = C2.nom_long AND C2.res_com = D.res_com AND D.nom_long = $${_to}$$ AND A.res_com <> B2.res_com AND B2.res_com <> C2.res_com AND A.res_com <> C2.res_com AND A.nom_long <> B1.nom_long AND B2.nom_long <> C1.nom_long AND C2.nom_long <> D.nom_long""")
-                #self.conn.commit()
-                #self.rows += self.cursor.fetchall()
+
+
+            if _hops >= 3 : 
+                self.cursor.execute(""f"WITH   depart_i AS (select DISTINCT stop_i         FROM nodes_{self.ville}         WHERE name = '{_from}'),         arrivee_i  AS (select DISTINCT stop_i         FROM nodes_{self.ville} WHERE name = '{_to}') ,               stations_from_a (depart,premier_transport, premier_arret)                AS (select DISTINCT from_stop_i,route_i, to_stop_i         FROM {_pt_use}         WHERE from_stop_i in (select stop_i         FROM depart_i)),                stations_from_b (premier_arret, deuxieme_transport, deuxieme_arret)                AS (select DISTINCT from_stop_i,route_i, to_stop_i         FROM {_pt_use}         WHERE from_stop_i in (select premier_arret         FROM stations_from_a)),        stations_from_c (deuxieme_arret, troisieme_transport, troisieme_arret)               AS (select DISTINCT from_stop_i,route_i, to_stop_i         FROM {_pt_use}         WHERE from_stop_i in (select deuxieme_arret         FROM stations_from_b)        and to_stop_i in (select stop_i         FROM arrivee_i)),                trajet_complet         AS (select depart,premier_transport, premier_arret, deuxieme_transport, deuxieme_arret, troisieme_transport, troisieme_arret             FROM stations_from_a         INNER JOIN stations_from_b         USING (premier_arret)         INNER JOIN stations_from_c         USING (deuxieme_arret)) SELECT X.name ,       A.route_name AS premiere_ligne,        Y.name ,       B.route_name AS deuxieme_ligne,        Z.name deuxieme_arret,               C.route_name AS troisieme_ligne,        F.name        FROM trajet_complet,         route_{self.ville} AS A,        route_{self.ville} AS B,        route_{self.ville} AS C,              nodes_{self.ville} as X,        nodes_{self.ville} as Y,        nodes_{self.ville} as Z,        nodes_{self.ville} as F WHERE A.route_i = premier_transport         AND   B.route_i = deuxieme_transport         AND   C.route_i = troisieme_transport        AND X.stop_i = depart        AND Y.stop_i = premier_arret        AND Z.stop_i = deuxieme_arret        AND F.stop_i = troisieme_arret         AND A.route_name <> B.route_name        AND A.route_name <> C.route_name AND B.route_name <> C.route_name;""")
+                self.conn.commit()
+                self.rows += self.cursor.fetchall()
         else:
             _pt_use = 'walk_'+self.ville
             #a faire quand la requete de walk sera faite
