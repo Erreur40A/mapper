@@ -58,7 +58,7 @@ class MainWindow(QMainWindow):
         _label = QLabel('Hops: ', self)
         _label.setFixedSize(20,20)
         self.hop_box = QComboBox() 
-        self.hop_box.addItems( ['1', '2', '3'] )
+        self.hop_box.addItems(['1', '2', '3'])
         self.hop_box.setCurrentIndex( 0 )
         controls_panel.addWidget(_label)
         controls_panel.addWidget(self.hop_box)
@@ -143,7 +143,10 @@ class MainWindow(QMainWindow):
 
                     j=-1
 
-            i+=1
+        else:
+            _pt_use='walk_'+self.ville
+
+            #a faire quand la requete de walk sera faite
         
 
     def button_Go(self):
@@ -181,6 +184,9 @@ class MainWindow(QMainWindow):
                 #self.cursor.execute(""f" SELECT distinct A.geo_point_2d, A.nom_long, A.res_com, B2.geo_point_2d, B2.nom_long, B2.res_com, C2.geo_point_2d, C2.nom_long, C2.res_com, D.geo_point_2d, D.nom_long FROM metros as A, metros as B1, metros as B2, metros as C1, metros as C2, metros as D WHERE A.nom_long = $${_from}$$ AND A.res_com = B1.res_com AND B1.nom_long = B2.nom_long AND B2.res_com = C1.res_com AND C1.nom_long = C2.nom_long AND C2.res_com = D.res_com AND D.nom_long = $${_to}$$ AND A.res_com <> B2.res_com AND B2.res_com <> C2.res_com AND A.res_com <> C2.res_com AND A.nom_long <> B1.nom_long AND B2.nom_long <> C1.nom_long AND C2.nom_long <> D.nom_long""")
                 #self.conn.commit()
                 #self.rows += self.cursor.fetchall()
+        else:
+            _pt_use = 'walk_'+self.ville
+            #a faire quand la requete de walk sera faite
 
         if len(self.rows) == 0 : 
             self.tableWidget.setRowCount(0)
@@ -254,11 +260,10 @@ class MainWindow(QMainWindow):
         
         _pt_use="steps_"+self.pt_box.currentText()+"_"+self.ville
 
-        print(f"Clicked on: latitude {lat}, longitude {lng}")
-        self.cursor.execute(""f"SELECT A.name, (SQRT(POW(ABS({lng}-A.lng), 2) + POW(ABS({lat}-A.lat), 2))) AS dist FROM nodes_{self.ville} AS A, {_pt_use} AS B WHERE A.stop_I=B.from_stop_I OR A.stop_I=B.to_stop_I ORDER BY dist ASC;""")        
+        self.cursor.execute(""f"SELECT A.name, (SQRT(POW(({lng}-A.lng), 2) + POW(({lat}-A.lat), 2))) AS dist FROM nodes_{self.ville} AS A, {_pt_use} AS B WHERE A.stop_I=B.from_stop_I OR A.stop_I=B.to_stop_I ORDER BY dist ASC;""")        
         self.conn.commit()
         rows = self.cursor.fetchall()
-        print(rows[0][0])
+
         if self.startingpoint :
             self.from_box.setCurrentIndex(self.from_box.findText(rows[0][0], Qt.MatchFixedString))
             self.startingpoint=False
