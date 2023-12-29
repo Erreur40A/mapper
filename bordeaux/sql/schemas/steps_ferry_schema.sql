@@ -1,4 +1,4 @@
-CREATE TABLE steps_rail_bordeaux(
+CREATE TABLE steps_ferry_bordeaux(
 	from_stop_I INTEGER,
 	to_stop_I INTEGER,
 	route_I INTEGER,

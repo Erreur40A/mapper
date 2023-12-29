@@ -1,4 +1,4 @@
-CREATE TABLE subway_bordeaux(
+CREATE TABLE ferry_berlin(
     from_stop_I INTEGER,
     to_stop_I INTEGER,
     d INTEGER,
