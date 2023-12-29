@@ -127,7 +127,13 @@ class MainWindow(QMainWindow):
             col=self.rows[self.tableWidget.currentRow()]
             for i in range(0,len(col)):
                 if (i%2==0):
-                    self.cursor.execute(""f" WITH tab1(stop_I, lat, lng) AS (SELECT stop_I, lat, lng FROM nodes_{self.ville} WHERE name='{col[i]}'), tmp (route_I) AS (SELECT route_I FROM route_{self.ville} WHERE route_name='{col[i+j]}') SELECT DISTINCT B.lat, B.lng FROM ({_pt_use} AS A INNER JOIN tab1 AS B ON (A.from_stop_I=B.stop_I)) INNER JOIN tmp AS C ON (A.route_I=C.route_I); """)
+                    if(col[i].find("'")!=-1):
+                        lst=col[i].split("'")
+                        arret=lst[0] + "''" + lst[1]
+                    else:
+                        arret=col[i]
+
+                    self.cursor.execute(""f" WITH tab1(stop_I, lat, lng) AS (SELECT stop_I, lat, lng FROM nodes_{self.ville} WHERE name='{arret}'), tmp (route_I) AS (SELECT route_I FROM route_{self.ville} WHERE route_name='{col[i+j]}') SELECT DISTINCT B.lat, B.lng FROM ({_pt_use} AS A INNER JOIN tab1 AS B ON (A.from_stop_I=B.stop_I)) INNER JOIN tmp AS C ON (A.route_I=C.route_I); """)
                     self.conn.commit()
                     coordonne=self.cursor.fetchall() 
                     #coordonne[0][0]=lat, coordonne[1][0]=lng c'est coordonne[i][j]
