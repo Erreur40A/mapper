@@ -14,6 +14,9 @@
 route_I_counts --> n_vehicles  
 
 
+***************** steps_{bus,tram,rail,subway}_{ville}.csv ******************
+(from_stop_I, to_stop_I, route_I) --> d, duration, route_count
+
 
 ************************ network_combined.csv **********************************
 (from_stop_I, to_stop_I, route_type) -> route_I_counts, d, duration_avg
