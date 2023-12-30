@@ -4,4 +4,4 @@ WITH tab1(stop_I, lat, lng) AS (
     WHERE name={name})
 
 SELECT DISTINCT B.lat, B.lng
-FROM (steps_{pt}_{ville} AS A INNER JOIN tab1 AS B ON (A.from_stop_I=B.stop_I))
+FROM (walk_{ville} AS A INNER JOIN tab1 AS B ON (A.from_stop_I=B.stop_I))
