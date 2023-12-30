@@ -103,7 +103,7 @@ class MainWindow(QMainWindow):
         self.show()        
 
     def connect_DB(self):
-        self.conn = psycopg2.connect(database="projet_test_db", user="kali")
+        self.conn = psycopg2.connect(database="BDD-db", user="Jibril", host="localhost", password="MG5scp15")
         self.cursor = self.conn.cursor()
 
         
@@ -152,7 +152,30 @@ class MainWindow(QMainWindow):
         else:
             _pt_use='walk_'+self.ville
 
-            #a faire quand la requete de walk sera faite
+            col=self.rows[self.tableWidget.currentRow()]
+            for i in range(0,len(col)):
+                if (i%2==0):
+                    if(col[i].find("'")!=-1):
+                        lst=col[i].split("'")
+                        arret=lst[0] + "''" + lst[1]
+                    else:
+                        arret=col[i]
+
+                    self.cursor.execute(""f" WITH tab1(stop_I, lat, lng) AS (SELECT stop_I, lat, lng FROM nodes_{self.ville} WHERE name='{arret}') SELECT DISTINCT B.lat, B.lng FROM ({_pt_use} AS A INNER JOIN tab1 AS B ON (A.from_stop_I=B.stop_I)) """)
+                    self.conn.commit()
+                    coordonne=self.cursor.fetchall() 
+                    #coordonne[0][0]=lat, coordonne[1][0]=lng c'est coordonne[i][j]
+                    #car les requetes sont stockés sous la forme de matrice et si
+                    #il y a plusieurs coordonne on prend celle qui est en coordonne[0]
+
+                    if plat != 0:
+                        self.webView.addSegment(plat, plng, coordonne[0][0], coordonne[0][1])
+                    plat = coordonne[0][0]
+                    plng = coordonne[0][1]
+
+                    self.webView.addMarker(coordonne[0][0], coordonne[0][1])
+
+            
         
 
     def button_Go(self):
