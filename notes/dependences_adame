@@ -17,7 +17,7 @@ route_I_counts --> n_vehicles
 
 
 ***************** steps_{bus,tram,rail,subway}_{ville}.csv ******************
-(from_stop_I, to_stop_I, route_I) --> d, duration
+from_stop_I, to_stop_I --> route_I
 route_I -> route_count
 
 
