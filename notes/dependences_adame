@@ -14,8 +14,13 @@
 route_I_counts --> n_vehicles  
 
 
+
+
 ***************** steps_{bus,tram,rail,subway}_{ville}.csv ******************
-(from_stop_I, to_stop_I, route_I) --> d, duration, route_count
+(from_stop_I, to_stop_I, route_I) --> d, duration
+route_I -> route_count
+
+
 
 
 ************************ network_combined.csv **********************************
@@ -57,4 +62,5 @@ route_I -> route_type
 
 ************************ network_nodes.csv **********************************
 
-(stop_I) --> lat, lon, name 
+(stop_I) --> lat, lon
+lat, lon -> name
