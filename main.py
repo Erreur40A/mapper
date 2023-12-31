@@ -216,7 +216,7 @@ class MainWindow(QMainWindow):
                 self.rows += self.cursor.fetchall()
         else:
             _pt_use = 'walk_'+self.ville
-            self.cursor.execute(""f"WITH table_depart AS  (SELECT DISTINCT stop_i FROM nodes_{self.ville} WHERE name = '{_from}'),     table_arrivee AS ( SELECT DISTINCT stop_i FROM nodes_{self.ville} WHERE name = '{_to}'),     trajet AS ( SELECT DISTINCT d FROM walk_{self.ville} WHERE from_stop_i IN (SELECT * FROM table_depart) AND to_stop_i IN (SELECT * FROM table_arrivee))  SELECT '{_from}', d , '{_to}'from trajet;""")
+            self.cursor.execute(""f"WITH table_depart AS  (SELECT DISTINCT stop_i FROM nodes_{self.ville} WHERE name = '{_from}'),     table_arrivee AS ( SELECT DISTINCT stop_i FROM nodes_{self.ville} WHERE name = '{_to}'),     trajet AS ( SELECT DISTINCT d_walk FROM walk_{self.ville} WHERE from_stop_i IN (SELECT * FROM table_depart) AND to_stop_i IN (SELECT * FROM table_arrivee))  SELECT '{_from}', d_walk , '{_to}'from trajet;""")
             self.conn.commit()
             self.rows += self.cursor.fetchall()
 
